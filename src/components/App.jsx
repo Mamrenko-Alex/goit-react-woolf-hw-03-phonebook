@@ -4,17 +4,28 @@ import styles from './PhoneBook.module.css';
 import { ContactForm } from './ContactForm';
 import { ContactList } from './ContactList';
 import { SearchFilter } from './SearchFilter';
+import { Notification } from './Notification/Notification';
 
 export class App extends Component {
   state = {
-    contacts: [
-      { id: nanoid(), name: 'Rosie Simpson', number: '459-12-56' },
-      { id: nanoid(), name: 'Hermione Kline', number: '443-89-12' },
-      { id: nanoid(), name: 'Eden Clements', number: '645-17-79' },
-      { id: nanoid(), name: 'Annie Copeland', number: '227-91-26' },
-    ],
+    contacts: [],
     filter: '',
   };
+
+  componentDidMount() {
+    const savedContacts = JSON.parse(localStorage.getItem('contacts'));
+    if (savedContacts) {
+      this.setState({
+        contacts: savedContacts,
+      });
+    }
+  }
+
+  componentDidUpdate(prevState) {
+    if (prevState.contacts !== this.state.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
+  }
 
   handleChange = event => {
     const { name, value } = event.target;
@@ -60,10 +71,14 @@ export class App extends Component {
         <ContactForm addContact={this.addContact} />
         <h2 className={styles.title}>Contacts</h2>
         <SearchFilter value={filter} onChange={this.handleChange} />
-        <ContactList
-          contacts={filteredContacts}
-          onDeleteContact={this.deleteContact}
-        />
+        {!this.state.contacts.length ? (
+          <Notification message="You don't have any contacts yet"></Notification>
+        ) : (
+          <ContactList
+            contacts={filteredContacts}
+            onDeleteContact={this.deleteContact}
+          />
+        )}
       </div>
     );
   }
